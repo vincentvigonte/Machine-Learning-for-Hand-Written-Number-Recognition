@@ -30,7 +30,7 @@ https://www.kaggle.com/datasets/jcprogjava/handwritten-digits-dataset-not-in-mni
 # Installation Steps
 1. Clone this repository to your local machine:
    ```bash
-   git clone https://github.com/vincentvigonte/Machine-Learning-for-Hand-Written-Numbers-Recognition.git
+   git clone https://github.com/vincentvigonte/Machine-Learning-for-Hand-Written-Number-Recognition.git
    cd Machine-Learning-for-Hand-Written-Numbers-Recognition
    ```
 
