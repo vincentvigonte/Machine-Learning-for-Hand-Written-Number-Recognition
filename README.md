@@ -23,6 +23,9 @@ The **Machine Learning for Hand-Written Numbers Recognition** project allows use
 # Prerequisites
 - Python 3.x installed on your machine.
 - Basic knowledge of Python and web applications.
+  
+# Dataset
+https://www.kaggle.com/datasets/jcprogjava/handwritten-digits-dataset-not-in-mnist 
 
 # Installation Steps
 1. Clone this repository to your local machine:
