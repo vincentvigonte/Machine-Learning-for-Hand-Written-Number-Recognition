@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handwritten Digit Recognition</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff; 
+            color: #6699cc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+        h2 {
+            color: #4f8ac5; 
+            text-align: center;
+            padding: 10px;
+            border-bottom: 2px solid #cceeff;
+            margin-bottom: 10px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .image-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .image-box {
+            text-align: center;
+        }
+        .image-box h4 {
+            color: #99ccff;
+            margin-bottom: 10px;
+        }
+        .image-box img {
+            width: 120px;
+            height: 120px;
+            border: 2px solid #cceeff;
+            border-radius: 5px;
+        }
+        .main-container {
+            background-color: #e6f7ff; 
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 350px;
+        }
+        #canvas {
+            border: 2px solid #cceeff;
+            border-radius: 5px;
+            background-color: #ffffff;
+            margin: 10px 0;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            color: white;
+        }
+        button {
+        background-color: #cceeff; 
+        color: white; 
+        padding: 8px 15px;
+        font-size: 14px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: rgb(105, 174, 243);
+        }
+        .prediction-container {
+            text-align: center;
+            margin: 10px 0;
+        }
+        .prediction-box {
+            background-color: #e6f7ff; 
+            border: 2px solid #cceeff;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #6699cc; 
+        }
+        .brush-container {
+            margin: 10px 0;
+            text-align: center;
+        }
+        label, #brushValue {
+            font-size: 14px;
+            color: #6699cc; 
+            font-weight: bold;
+        }
+        input[type="range"] {
+            margin-top: 5px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h2>Write a Number (0-9)</h2>
+    
+    <div class="container">
+        <div class="image-container">
+            <div class="image-box">
+                <h4>Raw Image</h4>
+                <img id="originalImage" src="">
+            </div>
+            <div>
+                <canvas id="canvas" width="280" height="280"></canvas>
+            </div>
+            <div class="image-box">
+                <h4>Processed Image</h4>
+                <img id="processedImage" src="">
+            </div>
+        </div>
+
+        <div class="main-container">
+            <div class="button-container">
+                <button id="predictBtn">Predict</button>
+                <button id="clearBtn">Clear</button>
+            </div>
+
+            <div class="prediction-container">
+                Recognized Digit 
+                <div class="prediction-box" id="predictionResult">-</div>
+            </div>
+
+            <div class="brush-container">
+                <label for="brushSize">Brush Size:</label>
+                <input type="range" id="brushSize" min="1" max="20" value="10">
+                <span id="brushValue">10</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const predictBtn = document.getElementById("predictBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const brushSizeInput = document.getElementById("brushSize");
+        const brushValue = document.getElementById("brushValue");
+        const predictionResult = document.getElementById("predictionResult");
+        const originalImage = document.getElementById("originalImage");
+        const processedImage = document.getElementById("processedImage");
+
+        let drawing = false;
+        let brushSize = brushSizeInput.value;
+
+        brushSizeInput.addEventListener('input', (e) => {
+            brushSize = e.target.value;
+            brushValue.textContent = brushSize;
+        });
+
+        canvas.addEventListener("mousedown", () => { drawing = true; });
+        canvas.addEventListener("mousemove", (e) => {
+            if (drawing) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                ctx.beginPath();
+                ctx.arc(x, y, brushSize, 0, Math.PI * 2);
+                ctx.fillStyle = "black";
+                ctx.fill();
+                ctx.closePath();
+            }
+        });
+
+        canvas.addEventListener("mouseup", () => { drawing = false; });
+
+        clearBtn.addEventListener("click", () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            predictionResult.textContent = "-";
+            originalImage.src = "";
+            processedImage.src = "";
+        });
+
+        predictBtn.addEventListener("click", () => {
+            const imageData = canvas.toDataURL("image/png");
+            const img = new Image();
+            img.src = imageData;
+
+            img.onload = () => {
+                const offCanvas = document.createElement('canvas');
+                offCanvas.width = 28;
+                offCanvas.height = 28;
+
+                const offCtx = offCanvas.getContext('2d');
+                offCtx.drawImage(img, 0, 0, 28, 28);
+
+                const resizedImageData = offCanvas.toDataURL("image/png");
+                const file = dataURLtoFile(resizedImageData);
+
+                const formData = new FormData();
+                formData.append("file", file);
+
+                fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.prediction !== undefined) {
+                        predictionResult.textContent = data.prediction;
+                        originalImage.src = data.original_image;
+                        processedImage.src = data.processed_image;
+                    } else {
+                        predictionResult.textContent = "Error";
+                    }
+                })
+                .catch(error => {
+                    predictionResult.textContent = "Error";
+                    console.error('Error:', error);
+                });
+            };
+        });
+
+        function dataURLtoFile(dataURL) {
+            const arr = dataURL.split(','), mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new File([u8arr], "drawing.png", {type: mime});
+        }
+    </script>
+</body>
+</html>
